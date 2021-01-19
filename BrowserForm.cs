@@ -30,8 +30,9 @@ namespace gesobrowser
 
 		//		public ChromiumWebBrowser chromeBrowser;
 
-		private BrowserForm Instance;
-		private bool Audio = false;
+//		private BrowserForm Instance;
+		private bool isAudio = false;
+		public bool isDomain = false;
 		private double ZoomLevel = 100;
 		private InifileUtils Ini;
 		private WinApi.WINDOWPLACEMENT Placement;
@@ -60,15 +61,15 @@ namespace gesobrowser
 				//				string buf = $"{rw.left}, {rw.top}, {new_width}, {new_height}";
 				string Stmp = $"{Placement.normalPosition.left}, {Placement.normalPosition.top}, {Placement.normalPosition.right}, {Placement.normalPosition.bottom}";
 				if (Placement.normalPosition.left >= 0)
-				{ Ini.setValue("Profile", "Window", Stmp); }
-				Ini.setValue("Profile", "ZoomLevel", ZoomLevel.ToString());
-				Ini.setValue("Profile", "DialogCloseShow", (int)DialogCloseShow);
-				Ini.setValue("Profile", "UserAgent", UserAgent);
+				{ Ini.SetValue("Profile", "Window", Stmp); }
+				Ini.SetValue("Profile", "ZoomLevel", ZoomLevel.ToString());
+				Ini.SetValue("Profile", "DialogCloseShow", (int)DialogCloseShow);
+				Ini.SetValue("Profile", "UserAgent", UserAgent);
 				Stmp = $"Chromium: {Cef.ChromiumVersion}, CEF: {Cef.CefVersion}, CefSharp: {Cef.CefSharpVersion}";
-				Ini.setValue("Profile", "version", Stmp);
+				Ini.SetValue("Profile", "version", Stmp);
 				for (int i = 0; i < 4; i++)
 				{
-					Ini.setValue("Profile", "TabColor" + (i + 1), ColorTranslator.ToHtml(TabColor[i]));
+					Ini.SetValue("Profile", "TabColor" + (i + 1), ColorTranslator.ToHtml(TabColor[i]));
 
 				}
 				LibraryLoader.Dispose();
@@ -79,69 +80,26 @@ namespace gesobrowser
 
 			}
 		}
-/*
-        private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-			ZoomLevel = double.Parse(comboBox1.SelectedItem.ToString());
-//            if (defaultZoomLevel>0) {
-				ZoomLevel=ZoomLevel / 10;
-			//			}else if (defaultZoomLevel < 0) {
-			//				defaultZoomLevel = defaultZoomLevel * 10 - 1;
-			//			}
-//			TabPage tab=tabControl1.SelectedTab;
-			int i = tabControl1.SelectedIndex;
-			BrowserTablist[i].chromeBrowser.SetZoomLevel(ZoomLevel);
-
-		}
-*/
-//		public BrowserForm()
-//        {
-//            InitializeComponent();
-//			InitBrowser();
-//		}
-		static string Title(string url)
-        {
-			NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(new Uri(url).Query);
-			//			base.WindowState = FormWindowState.Maximized;
-			string a = nameValueCollection["ServerId"];
-			if (a != null && a.Length != 0 && url.IndexOf("sengokugifu") > 0)
-			{
-				return "戦国義風 " + a + " " + nameValueCollection["nickname"];
-			}
-			a = nameValueCollection["server_id"];
-			if (a != null && a.Length != 0 && url.IndexOf("ingame") > 0)
-			{
-				return "ドラゴンアウェイクン " + a;
-			}
-			a = nameValueCollection["sid"];
-			if (a != null && a.Length != 0)
-			{
-				if (url.IndexOf("loas") > 0)
+		/*
+				private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
 				{
-					return "League of Angels2 " + a;
-				}
-				else
-				if (url.IndexOf("loa3") > 0)
-				{
-					return "League of Angels3 " + a;
-				}
-			}
-			a = nameValueCollection["site"];
-			if (a != null && a.Length != 0)
-			{
-				//a = nameValueCollection["site"];
-				if (url.IndexOf("wef.brabragames") > 0)
-					{
-						return "World End Fantasy " + a;
-					}
-			}
-			if (url.IndexOf("//wef.") > 0)
-			{
-				return "World End Fantasy ";
-			}
-			return "gesobrowser"; ;
-		}
+					ZoomLevel = double.Parse(comboBox1.SelectedItem.ToString());
+		//            if (defaultZoomLevel>0) {
+						ZoomLevel=ZoomLevel / 10;
+					//			}else if (defaultZoomLevel < 0) {
+					//				defaultZoomLevel = defaultZoomLevel * 10 - 1;
+					//			}
+		//			TabPage tab=tabControl1.SelectedTab;
+					int i = tabControl1.SelectedIndex;
+					BrowserTablist[i].chromeBrowser.SetZoomLevel(ZoomLevel);
 
+				}
+		*/
+		//		public BrowserForm()
+		//        {
+		//            InitializeComponent();
+		//			InitBrowser();
+		//		}
 		public BrowserForm(string url)
 		{
 			AppPath = System.Windows.Forms.Application.ExecutablePath;
@@ -166,7 +124,7 @@ namespace gesobrowser
 			}
 			this.Text = AppNameWoExt;
 			Ini = new InifileUtils(Path.Combine(AppDir, AppNameWoExt + ".ini"));
-			string buf = Ini.getValueString("Profile", "Window");
+			string buf = Ini.GetValueString("Profile", "Window");
 
 			if (buf != "")
 			{
@@ -196,33 +154,38 @@ namespace gesobrowser
 				Placement.showCmd = WinApi.SW.SHOWNORMAL;
 				//				WinApi.SetWindowPlacement(this.Handle, ref placement);
 			}
-			buf = Ini.getValueString("Profile", "ZoomLevel");
+			buf = Ini.GetValueString("Profile", "ZoomLevel");
 			if (buf != "")
 			{
 				ZoomLevel = double.Parse(buf);
 			}
-			buf = Ini.getValueString("Profile", "audio");
+			buf = Ini.GetValueString("Profile", "audio");
 			if (buf != "")
 			{
-				Audio = bool.Parse(buf);
+				isAudio = bool.Parse(buf);
 			}
-			buf = Ini.getValueString("Profile", "DialogCloseShow");
+			buf = Ini.GetValueString("Profile", "domain");
+			if (buf != "")
+			{
+				isDomain = bool.Parse(buf);
+			}
+			buf = Ini.GetValueString("Profile", "DialogCloseShow");
 			if (buf != "")
 			{
 				DialogCloseShow = (DialogResult)int.Parse(buf);
 			}
-			buf = Ini.getValueString("Profile", "UserAgent");
+			buf = Ini.GetValueString("Profile", "UserAgent");
 			if (buf != "")
 			{
 				UserAgent = buf;
 			}
-			Proxyserver = Ini.getValueString("Profile", "proxy");
-			buf = Ini.getValueString("Profile", "flashdll");
+			Proxyserver = Ini.GetValueString("Profile", "proxy");
+			buf = Ini.GetValueString("Profile", "flashdll");
 			if (buf != "")
 			{
 				Flashdll = buf;
 			}
-			buf = Ini.getValueString("Profile", "flashversion");
+			buf = Ini.GetValueString("Profile", "flashversion");
 			if (buf != "")
 			{
 				Flashversion = buf;
@@ -230,7 +193,7 @@ namespace gesobrowser
 			TabColor = new Color[4] { SystemColors.Control,Color.Black,Color.LightBlue, Color.Black};
 			for (int i = 0; i < 4; i++)
 			{
-				buf = Ini.getValueString("Profile", "TabColor" + (i + 1)) ;
+				buf = Ini.GetValueString("Profile", "TabColor" + (i + 1)) ;
 				if (buf != "")
 				{
 					TabColor[i] = ColorTranslator.FromHtml(buf);
@@ -238,7 +201,13 @@ namespace gesobrowser
 			}
 			//			TargetUrl = url;
 
-			LibraryLoader = new CefLibraryHandle(Path.Combine(AppDir, "x64", "libcef.dll"));
+			LibraryLoader = new CefLibraryHandle(Path.Combine(AppDir, 
+#if tx64
+        "x64"
+#else
+        "x86"
+#endif
+, "libcef.dll"));
 			if (LibraryLoader.IsInvalid) { throw new Exception("no lib"); }
 
 			InitBrowser();
@@ -295,22 +264,24 @@ namespace gesobrowser
 			ZoomLevel = double.Parse(((ToolStripMenuItem)sender).Text.ToString());
 
 			int i = tabControl1.SelectedIndex;
-			if (BrowserTablist[i].chromeBrowser != null) BrowserTablist[i].chromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
+			if (BrowserTablist[i].ChromeBrowser != null) BrowserTablist[i].ChromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
 		}
 		private void Closeck(object sender, EventArgs e)
 		{
 			int i = tabControl1.SelectedIndex;
-			IBrowser browser = BrowserTablist[i].chromeBrowser != null?BrowserTablist[i].chromeBrowser.GetBrowser():null;
+//			IBrowser browser = BrowserTablist[i].ChromeBrowser != null?BrowserTablist[i].ChromeBrowser.GetBrowser():null;
+			IBrowser browser = BrowserTablist[i].ChromeBrowser?.GetBrowser(); 
 			if (tabControl1.TabCount > 1)
 			{
-				tabControl1.TabPages.Remove(BrowserTablist[i].tab);
+				if(i!=0) tabControl1.SelectTab(i - 1);
+				tabControl1.TabPages.Remove(BrowserTablist[i].Tab);
 				if (browser != null) browser.CloseBrowser(true);
 				BrowserTablist[i].Dispose();
 				BrowserTablist.RemoveAt(i);
 				if (tabControl1.TabCount == 1) { tabControl1.ItemSize = new Size(0, 1);
 					tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
 					tabControl1.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
-				}
+				}				
 			}
 			else
 				Close();
@@ -318,12 +289,12 @@ namespace gesobrowser
 		private void Reloadck(object sender, EventArgs e)
 		{
 			int i = tabControl1.SelectedIndex;
-			if (BrowserTablist[i].chromeBrowser != null) BrowserTablist[i].chromeBrowser.GetBrowser().Reload();
+			if (BrowserTablist[i].ChromeBrowser != null) BrowserTablist[i].ChromeBrowser.GetBrowser().Reload();
 		}
 //		public delegate void EventHandler(object sender, EventArgs e);
 		private void InitBrowser()
 		{
-			Instance = this;
+//			Instance = this;
 			if (Cef.IsInitialized == false)
 			{
 				CefSettings obj = new CefSettings();
@@ -341,50 +312,68 @@ namespace gesobrowser
 				obj.UserDataPath = Path.Combine(AppDir, "UserData", AppNameWoExt);
 				obj.CachePath= obj.UserDataPath;
 				//				obj.CefCommandLineArgs.Add("disable-gpu", "0");
-				if(Audio == false)
+				if(isAudio == false)
 					obj.CefCommandLineArgs.Add("mute-audio");
 
-				Stmp = Path.Combine(AppDir, "x64", "CefSharp.BrowserSubprocess.exe");
-//				if (!File.Exists(dllpp)) { throw new Exception("no lib"); }
-//				a = Path.Combine(appDir, "x64", appNameWoExt+"Subprocess.exe");
-//				if (!File.Exists(a)) {
-//					File.Copy(dllpp, a, false);
-					/*
-					var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-					bool ret=principal.IsInRole(WindowsBuiltInRole.Administrator);
-                    if (!ret) {
+				Stmp = Path.Combine(AppDir, 
+#if tx64
+        "x64"
+#else
+        "x86"
+#endif
+, "CefSharp.BrowserSubprocess.exe");
+				//				if (!File.Exists(dllpp)) { throw new Exception("no lib"); }
+				//				a = Path.Combine(appDir, "x64", appNameWoExt+"Subprocess.exe");
+				//				if (!File.Exists(a)) {
+				//					File.Copy(dllpp, a, false);
+				/*
+				var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+				bool ret=principal.IsInRole(WindowsBuiltInRole.Administrator);
+				if (!ret) {
 //						var assembly = Assembly.GetEntryAssembly();
-						string[] s = new string[] { targetUrl };
-						var startInfo = new ProcessStartInfo(appPath, ToCommandArgs(s))
-						{
-							UseShellExecute = true,
-							Verb = "runas",
-						};
+					string[] s = new string[] { targetUrl };
+					var startInfo = new ProcessStartInfo(appPath, ToCommandArgs(s))
+					{
+						UseShellExecute = true,
+						Verb = "runas",
+					};
 
-						try
-						{
-							Process.Start(startInfo);
-						}
-						catch (Win32Exception ex)
-						{
-							throw new Exception("no lib");
-						}
-					}*/
-//					WinApi.CreateSymbolicLink(a, dllpp, WinApi.SymbolicLink.File);
-					//					uint error = WinApi.GetLastError();
-					//					uint ERROR_PRIVILEGE_NOT_HELD = 1314;
-					//					if (error == ERROR_PRIVILEGE_NOT_HELD)
-					//					{
-					//						const string SE_CREATE_SYMBOLIC_LINK_NAME = "SeCreateSymbolicLinkPrivilege";
-					//						RunAsAdministrator(SE_CREATE_SYMBOLIC_LINK_NAME);
-					//						WinApi.CreateSymbolicLink(a, dllpp, WinApi.SymbolicLink.File);
-					//						error = WinApi.GetLastError();
-					//					}
-//				}
-				if (!File.Exists(Stmp)) { throw new Exception("no lib"); }
+					try
+					{
+						Process.Start(startInfo);
+					}
+					catch (Win32Exception ex)
+					{
+						throw new Exception("no lib");
+					}
+				}*/
+				//					WinApi.CreateSymbolicLink(a, dllpp, WinApi.SymbolicLink.File);
+				//					uint error = WinApi.GetLastError();
+				//					uint ERROR_PRIVILEGE_NOT_HELD = 1314;
+				//					if (error == ERROR_PRIVILEGE_NOT_HELD)
+				//					{
+				//						const string SE_CREATE_SYMBOLIC_LINK_NAME = "SeCreateSymbolicLinkPrivilege";
+				//						RunAsAdministrator(SE_CREATE_SYMBOLIC_LINK_NAME);
+				//						WinApi.CreateSymbolicLink(a, dllpp, WinApi.SymbolicLink.File);
+				//						error = WinApi.GetLastError();
+				//					}
+				//				}
+				//				if (!File.Exists(Stmp)) { throw new Exception("no lib"); }
 				obj.BrowserSubprocessPath = Stmp;
-				obj.LocalesDirPath = Path.Combine(AppDir, "x64", "locales");
-				obj.ResourcesDirPath = Path.Combine(AppDir, "x64");
+				obj.LocalesDirPath = Path.Combine(AppDir, 
+#if tx64
+        "x64"
+#else
+        "x86"
+#endif
+, "locales");
+				obj.ResourcesDirPath = Path.Combine(AppDir, 
+#if tx64
+        "x64"
+#else
+        "x86"
+#endif
+);
 				if (Proxyserver != "")
 				{
 					obj.CefCommandLineArgs.Add("proxy-server", Proxyserver);
@@ -414,20 +403,52 @@ namespace gesobrowser
 		}
 		public class BrowserTab : IDisposable
 		{
-			public TabPage tab { get; set; }
-			public ChromiumWebBrowser chromeBrowser { get; set; }
+			public string Text { get; set; }
+			public TabPage Tab { get; set; }
+			public ChromiumWebBrowser ChromeBrowser { get; set; }
 			public void Dispose()
             {
-				tab.Dispose();
+				Tab.Dispose();
 //				chromeBrowser.GetBrowser().CloseBrowser(true);
-				if(chromeBrowser!=null) chromeBrowser.Dispose();
+				if(ChromeBrowser != null) ChromeBrowser.Dispose();
 			}
+			//static string Center(string s, int width)
+			//{
+			//	var margin = (width - s.Length) / 2;
+
+			//	if (margin <= 0)
+			//	{
+			//		return s;
+			//	}
+			//	else
+			//	{
+			//		var padding = new String(' ', margin);
+
+			//		return String.Concat(padding, s, padding);
+			//	}
+			//}
 			public BrowserTab(TabControl t, string s, bool Create = true)
 			{
-				tab = new TabPage();
-				tab.Text = Title(s);
-				tab.Dock = System.Windows.Forms.DockStyle.Fill;
-				t.Controls.Add(tab);
+                Tab = new TabPage
+                {
+                    Text = TabTitle(s),
+                    Dock = System.Windows.Forms.DockStyle.Fill
+                };
+				int num = Math.Max(Tab.Text.Length, 30);
+				//				StringBuilder sb = new StringBuilder(num+1);
+				//char[] buf = new char[num + 1];
+				//int i;
+				//for (i = 0; i < num; i++)
+				//{
+				//	buf[i] = ' ';
+				//	//sb.Append(" ");
+				//}
+				//buf[i] = char.MinValue;
+				//Tab.Text += new string(buf);//string.Join("",buf);
+				//				Tab.Text += sb.ToString();
+				//Tab.Text = Center(Tab.Text, Tab.Text.Length+30);
+				Tab.Text = Tab.Text.PadLeft(num);
+				t.Controls.Add(Tab);
 				t.SelectTab(t.TabCount - 1);
 				if (t.TabCount == 1) { t.ItemSize = new Size(0, 1); }
 				else if (t.TabCount == 2) {
@@ -439,20 +460,90 @@ namespace gesobrowser
 					t.SizeMode = System.Windows.Forms.TabSizeMode.FillToRight;
 					t.Appearance = System.Windows.Forms.TabAppearance.Normal;
 				}
-//                else
-//                {
-//					int w = Math.Max(tab.Text.Length, 30);
-//					Size si = Instance.ClientSize;
-//					w = Math.Max((si.Width / t.TabCount) / 4, w);
-//					t.ItemSize = new Size(w, 30);
-//				}
-				chromeBrowser = null;
+				//                else
+				//                {
+				//					int w = Math.Max(tab.Text.Length, 30);
+				//					Size si = Instance.ClientSize;
+				//					w = Math.Max((si.Width / t.TabCount) / 4, w);
+				//					t.ItemSize = new Size(w, 30);
+				//				}
+				ChromeBrowser = null;
 				if (Create == false) return;
-				chromeBrowser = new ChromiumWebBrowser(s);
-				chromeBrowser.Parent = tab;
-				chromeBrowser.Dock = DockStyle.Fill;
-				chromeBrowser.MenuHandler = new Handlers.ContextMenuHandler();
-				//				chromeBrowser.LifeSpanHandler = new Handlers.LifeSpanHandler(this);
+                ChromeBrowser = new ChromiumWebBrowser(s)
+                {
+                    Parent = Tab,
+                    //Dock = DockStyle.Fill,
+                    MenuHandler = new Handlers.ContextMenuHandler()
+                };
+                //				chromeBrowser.LifeSpanHandler = new Handlers.LifeSpanHandler(this);
+            }
+   //         public class WebBrowserl : WebBrowser, IDisposable
+			//{
+
+			//	public WebBrowserl(string s):base() {
+			//		base.Navigate(s);
+			//		FrameLoadEnd += ChromeBrowserOnFrameLoadEnd;
+			//		base.DocumentCompleted += ChromeBrowserOnFrameLoadEnd;
+			//	}
+			//	public WebBrowserl GetBrowser() { return this; }
+			//	public void CloseBrowser(bool a) { base.Dispose(); }
+			//	public IContextMenuHandler MenuHandler { get; set; }
+			//	public ILifeSpanHandler LifeSpanHandler { get; set; }
+			//	//public FrameLoadEndEventArgs FrameLoadEnd;
+			//	//{
+			//	//	public static FrameLoadEnd operator +(FrameLoadEnd z, FrameLoadEnd w)
+			//	//	{
+			//	//		return z;
+			//	//	}
+			//	//}
+			//}
+			private string TabTitle(string url)
+			{
+				NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(new Uri(url).Query);
+				//			base.WindowState = FormWindowState.Maximized;
+				string a = nameValueCollection["ServerId"];
+				if (a != null && a.Length != 0 && url.IndexOf("sengokugifu") > 0)
+				{
+					this.Text = "戦国義風";
+					return a + " " + nameValueCollection["nickname"];
+					//				return "戦国義風 " + a + " " + nameValueCollection["nickname"];
+				}
+				a = nameValueCollection["server_id"];
+				if (a != null && a.Length != 0 && url.IndexOf("ingame") > 0)
+				{
+					this.Text = "ドラゴンアウェイクン"; return a;
+//					return "ドラゴンアウェイクン " + a;
+				}
+				a = nameValueCollection["sid"];
+				if (a != null && a.Length != 0)
+				{
+					if (url.IndexOf("loas") > 0)
+					{
+						this.Text = "League of Angels 2"; return a;
+//						return "League of Angels2 " + a;
+					}
+					else
+					if (url.IndexOf("loa3") > 0)
+					{
+						this.Text = "League of Angels 3"; return a;
+//						return "League of Angels3 " + a;
+					}
+				}
+				a = nameValueCollection["site"];
+				if (a != null && a.Length != 0)
+				{
+					//a = nameValueCollection["site"];
+					if (url.IndexOf("wef.brabragames") > 0)
+					{
+						this.Text = "World End Fantasy"; return a;
+//						return "World End Fantasy " + a;
+					}
+				}
+				//if (url.IndexOf("//wef.") > 0)
+				//{
+				//	return this.Text = "World End Fantasy ";
+				//}
+				return this.Text = "gesobrowser";
 			}
 
 		}
@@ -461,7 +552,8 @@ namespace gesobrowser
 			if (!url.StartsWith("http"))
 				return;
             BrowserTab browserTab = new BrowserTab(tabControl1, url, Create);
-//            BrowserTab tab = browserTab;
+			this.Text = browserTab.Text;
+			//            BrowserTab tab = browserTab;
 			BrowserTablist.Add(browserTab);
 
 			//			TabPage tab = new TabPage();
@@ -475,8 +567,8 @@ namespace gesobrowser
 			//			tab.chromeBrowser.Dock = DockStyle.Fill;
 			//			tab.chromeBrowser.MenuHandler = new CustomMenuHandler();
 			//			chromeBrowser.SetZoomLevel(ZoomLevel);
-			browserTab.chromeBrowser.LifeSpanHandler = new Handlers.LifeSpanHandler(this);
-//			browserTab.RequestHandler = new Handlers.RequestHandler(this);
+			browserTab.ChromeBrowser.LifeSpanHandler = new Handlers.LifeSpanHandler(this);
+			browserTab.ChromeBrowser.RequestHandler = new Handlers.RequestHandler(this);
 			if (tabControl1.TabCount > 1) return;
 
 			//			BrowserSettings browserSettings = new BrowserSettings();
@@ -486,12 +578,12 @@ namespace gesobrowser
 
 			//			IKeyboardHandler keyboardHandler = new KeyboardHandler(this);
 			//			chromeBrowser.KeyboardHandler = keyboardHandler;
-			browserTab.chromeBrowser.FrameLoadEnd += ChromeBrowserOnFrameLoadEnd;
+			browserTab.ChromeBrowser.FrameLoadEnd += ChromeBrowserOnFrameLoadEnd;
 			return;
 		}
 		private string ReceiveString(ref Message m)//IntPtr lParam)
 		{
-			string data = null;
+			string data;
 			try
 			{
 				WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
@@ -585,23 +677,25 @@ namespace gesobrowser
 			//			var chromiumBrowser = sender as ChromiumWebBrowser;
 			//			chromiumBrowser?.ShowDevTools();
 //			int i = tabControl1.SelectedIndex;
-			BrowserTablist[0].chromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
+			BrowserTablist[0].ChromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
 			Process curProcess = Process.GetCurrentProcess();
 			WinApi.SetWindowPlacement(curProcess.MainWindowHandle, ref Placement);
 		}
-		private void tabControl1_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e)
+		private void TabControl1_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e)
 		{
 			TabPage CurrentTab = tabControl1.TabPages[e.Index];
 			Rectangle ItemRect = tabControl1.GetTabRect(e.Index);
 			SolidBrush FillBrush = new SolidBrush(TabColor[0]);
 			SolidBrush TextBrush = new SolidBrush(TabColor[1]);
-			StringFormat sf = new StringFormat();
-			sf.Alignment = StringAlignment.Center;
-			sf.LineAlignment = StringAlignment.Center;
+            StringFormat sf = new StringFormat((StringFormatFlags)0, 0)
+			{
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
 
-			//If we are currently painting the Selected TabItem we'll
-			//change the brush colors and inflate the rectangle.
-			if (System.Convert.ToBoolean(e.State & DrawItemState.Selected))
+            //If we are currently painting the Selected TabItem we'll
+            //change the brush colors and inflate the rectangle.
+            if (System.Convert.ToBoolean(e.State & DrawItemState.Selected))
 			{
 				FillBrush.Color = TabColor[2];
 				TextBrush.Color = TabColor[3];

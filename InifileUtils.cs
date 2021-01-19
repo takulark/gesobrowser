@@ -11,7 +11,7 @@ namespace gesobrowser
         /// <summary>
         /// iniファイルのパスを保持
         /// </summary>
-        private String filePath { get; set; }
+        private String FilePath { get; set; }
 
         public void Dispose()
         {//base.Dispose();
@@ -30,7 +30,7 @@ namespace gesobrowser
         /// <param name="filePath">iniファイルパス</param>
         public InifileUtils(String filePath)
         {
-            this.filePath = filePath;
+            this.FilePath = filePath;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace gesobrowser
         /// <param name="section"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public String getValueString(String section, String key)
+        public String GetValueString(String section, String key)
         {
             StringBuilder sb = new StringBuilder(1024);
 
@@ -49,7 +49,7 @@ namespace gesobrowser
                 "",
                 sb,
                 Convert.ToUInt32(sb.Capacity),
-                filePath);
+                FilePath);
 
             return sb.ToString();
         }
@@ -60,9 +60,9 @@ namespace gesobrowser
         /// <param name="section"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public int getValueInt(String section, String key)
+        public int GetValueInt(String section, String key)
         {
-            return (int)WinApi.GetPrivateProfileInt(section, key, 0, filePath);
+            return (int)WinApi.GetPrivateProfileInt(section, key, 0, FilePath);
         }
 
         /// <summary>
@@ -71,9 +71,9 @@ namespace gesobrowser
         /// <param name="section"></param>
         /// <param name="key"></param>
         /// <param name="val"></param>
-        public void setValue(String section, String key, int val)
+        public void SetValue(String section, String key, int val)
         {
-            setValue(section, key, val.ToString());
+            SetValue(section, key, val.ToString());
         }
 
         /// <summary>
@@ -82,9 +82,9 @@ namespace gesobrowser
         /// <param name="section"></param>
         /// <param name="key"></param>
         /// <param name="val"></param>
-        public void setValue(String section, String key, String val)
+        public void SetValue(String section, String key, String val)
         {
-            WinApi.WritePrivateProfileString(section, key, val, filePath);
+            WinApi.WritePrivateProfileString(section, key, val, FilePath);
         }
     }
 }

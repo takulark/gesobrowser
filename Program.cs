@@ -11,15 +11,15 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-
 namespace gesobrowser
 {
     static class Program
-    {
-        /// <summary>
-        /// アプリケーションのメイン エントリ ポイントです。
-        /// </summary>
-        [STAThread]
+
+	{
+		/// <summary>
+		/// アプリケーションのメイン エントリ ポイントです。
+		/// </summary>
+		[STAThread]
 		//       private static bool StartsWith(string s, string v) => CultureInfo.CurrentCulture.CompareInfo.IsPrefix(s, v, CompareOptions.IgnoreCase);
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static string Client(string url)
@@ -36,10 +36,10 @@ namespace gesobrowser
 			{
 				return url.Substring(15);
 			}
-			else if (url.StartsWith("wefmclient://"))
-			{
-				return url.Substring(13);
-			}
+			//else if (url.StartsWith("wefmclient://"))
+			//{
+			//	return url.Substring(13);
+			//}
 			else if (url.StartsWith("roadclient://"))
 			{
 				return url.Substring(13)+"&desktopType=1";
@@ -81,14 +81,24 @@ namespace gesobrowser
 			return null;
 		}
 
-		static void Main(string[] args)
-        {
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(defaultValue: false);
-			AppDomain.CurrentDomain.AssemblyResolve += Resolver;
 
+	static void Main(string[] args)
+		{
+			//AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+			//var a=new Subprocess(args);
+			//if (a.parentProcessId != null)
+			//{
+			//	a.Submain(args);
+			//	a.Dispose();
+			//	return;
+			//}
+			//a.Dispose();
 			if (args.Length != 0)
 			{
+				Application.EnableVisualStyles();
+				Application.SetCompatibleTextRenderingDefault(defaultValue: false);
+				AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+
 				string url = Client(args[0]);
 				if (url!="")
 				{
@@ -127,11 +137,13 @@ namespace gesobrowser
 					}
 					else
 					{
-						WinApi.COPYDATASTRUCT cds = new WinApi.COPYDATASTRUCT();
-						cds.dwData = new IntPtr(WinApi.WM_APP);
-						cds.lpData = url;
-						cds.cbData = url.Length * sizeof(char);
-						IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(cds));
+                        WinApi.COPYDATASTRUCT cds = new WinApi.COPYDATASTRUCT
+                        {
+                            dwData = new IntPtr(WinApi.WM_APP),
+                            lpData = url,
+                            cbData = url.Length * sizeof(char)
+                        };
+                        IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(cds));
 						Marshal.StructureToPtr(cds, pnt, false);
 						WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, new UIntPtr(WinApi.WM_APP), pnt);
 						//WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_USER1, IntPtr.Zero, ref cds);
@@ -162,8 +174,13 @@ namespace gesobrowser
 			{
 				string assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
 				string archSpecificPath = Path.Combine(AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-													   Environment.Is64BitProcess ? "x64" : "x86",
-													   assemblyName);
+#if tx64
+        "x64"
+#else
+        "x86"
+#endif
+//													   Environment.Is64BitProcess ? "x64" : "x86",
+													   ,assemblyName);
 
 				return File.Exists(archSpecificPath)
 						   ? Assembly.LoadFile(archSpecificPath)

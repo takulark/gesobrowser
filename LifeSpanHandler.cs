@@ -154,7 +154,7 @@ namespace gesobrowser.Handlers
 
             // WebViewのコンテナ（親ウィンドウ）の情報を設定する。
             //                Rectangle rect = browserTab.ClientRectangle;
-            windowInfo.SetAsChild(browserTab.tab.Handle);//, rect.Left, rect.Top, rect.Right, rect.Bottom);
+            windowInfo.SetAsChild(browserTab.Tab.Handle);//, rect.Left, rect.Top, rect.Right, rect.Bottom);
 
                 // フォームを表示する
 //                browserTab.Show();
@@ -162,6 +162,79 @@ namespace gesobrowser.Handlers
             return false;
 		}
 	}
+    public class ResourceRequestHandler : IResourceRequestHandler
+    {
+        private static string Getdomain(string host)
+        {
+            int index = host.LastIndexOf('.'), last = 3;
+            while (index > 0 && index >= last - 3)
+            {
+                last = index;
+                index = host.LastIndexOf('.', last - 1);
+            }
+            return host.Substring(index + 1);
+//            return u;
+        }
+        public void Dispose()
+        {
+        }
+
+        public ICookieAccessFilter GetCookieAccessFilter(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request)
+        {
+            return null;
+        }
+
+        public IResourceHandler GetResourceHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request)
+        {
+            return null;
+        }
+
+        public IResponseFilter GetResourceResponseFilter(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response)
+        {
+            return null;
+        }
+
+        public CefReturnValue OnBeforeResourceLoad(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback)
+        {
+            Uri url,rurl;
+            if (Uri.TryCreate(request.Url, UriKind.Absolute, out url) == false)
+            {
+                //If we're unable to parse the Uri then cancel the request
+                // avoid throwing any exceptions here as we're being called by unmanaged code
+                return CefReturnValue.Cancel;
+            }
+            if (Uri.TryCreate(request.ReferrerUrl, UriKind.Absolute, out rurl) == false)
+            {
+                //If we're unable to parse the Uri then cancel the request
+                // avoid throwing any exceptions here as we're being called by unmanaged code
+                return CefReturnValue.Cancel;
+            }
+            string a = Getdomain(url.Host);
+            string b = Getdomain(rurl.Host);
+            if(b.StartsWith(a, StringComparison.CurrentCultureIgnoreCase))
+                return CefReturnValue.Continue;
+            frame.ExecuteJavaScriptAsync($"console.log('noload:{request.Url}');", frame.Url);
+            return CefReturnValue.Cancel;
+        }
+
+        public bool OnProtocolExecution(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request)
+        {
+            return false;
+        }
+
+        public void OnResourceLoadComplete(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength)
+        {
+        }
+
+        public void OnResourceRedirect(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response, ref string newUrl)
+        {
+        }
+
+        public bool OnResourceResponse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, IResponse response)
+        {
+            return false;
+        }
+    }
     /*
     public class AuthDialog : Form
     {
@@ -186,7 +259,7 @@ namespace gesobrowser.Handlers
             UserName = userNameTxt.Text;
             Password = passwordTxt.Text;
         }
-    }
+    }*/
     public class RequestHandler : IRequestHandler
     {
         private BrowserForm myForm;
@@ -195,7 +268,7 @@ namespace gesobrowser.Handlers
             myForm = form;
         }
         public bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback)
-        {
+        {/*
             // コントロールのトップレベルのコントロールを取得（SimpleBrowserFrame）
 //            SimpleBrowserFrame mainFrame = SimpleBrowserFrame.getMainFrame(browser);
 
@@ -225,12 +298,14 @@ namespace gesobrowser.Handlers
                 // 認証処理をキャンセルする。
                 callback.Cancel();
             }
-
+            */
             return true;
         }
-
-        public IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+        
+            public IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
         {
+            if(myForm.isDomain==false && request.ReferrerUrl!="")
+                return new ResourceRequestHandler();
             return null;
         }
 
@@ -279,7 +354,8 @@ namespace gesobrowser.Handlers
         {
             return false;
         }
-    }*/
+    }
+
 /*    public class DisplayHandler : IDisplayHandler
     {
         public void OnAddressChanged(IWebBrowser chromiumWebBrowser, AddressChangedEventArgs addressChangedArgs)

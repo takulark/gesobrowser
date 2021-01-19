@@ -73,7 +73,7 @@ namespace gesobrowser
 //            this.tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.FillToRight;
             this.tabControl1.TabIndex = 2;
             this.tabControl1.AutoSize = true;
-            this.tabControl1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tabControl1_DrawItem);
+            this.tabControl1.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.TabControl1_DrawItem);
             this.tabControl1.DrawMode= System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             // 
             // browserPanel
