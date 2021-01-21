@@ -14,14 +14,8 @@ readme/txt.ini 設定の説明
 UserData/実行ファイル名/ 自動で作成 Chromiumのデータ
 
 クライアント対応game
-
 League of Angels 2
-
 League of Angels 3
-
 戦国義風
-
 ドラゴンアウェイクン
-
 World End Fantasy
-
