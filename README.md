@@ -1,21 +1,22 @@
-�쐬��
+作成中
 
-flash���܂܂�邽��
-���s�t�@�C���̕s���葽���z�z�͋֎~���܂��B
-�������R�[�h�����t�A�m�荇���ȂǂɃT�|�[�g��ӔC���Ă�Ȃ�\�B
-(�I���I���R�[�h�����͂������_��)
-���r���h���Ďg�����ɂ͖�肠��܂��񂪎��ȐӔC�B
+flashが含まれるため
+実行ファイルの不特定多数配布は禁止します。
+ただしコード署名付、知り合いなどにサポートや責任もてるなら可能。
+(オレオレコード署名はもちろんダメ)
+自ビルドして使う分には問題ありませんが自己責任。
 
-���s�t�@�C���̓��l�[�����Ďg������{�B
-bat/ �N���C�A���g�̓o�^
-ico/ ���s�t�@�C�����Ɠ����ɂ���ƕ\�������
-readme/list.txt �K�v�ȃt�@�C���\���Ȃ�
-readme/txt.ini �ݒ�̐���
-UserData/���s�t�@�C����/ �����ō쐬 Chromium�̃f�[�^
+実行ファイルはリネームして使うが基本。
+bat/ クライアントの登録
+ico/ 実行ファイル名と同じにすると表示される
+readme/list.txt 必要なファイル構成など
+readme/txt.ini 設定の説明
+UserData/実行ファイル名/ 自動で作成 Chromiumのデータ
 
-�N���C�A���g�Ή�game
+クライアント対応game
 League of Angels 2
 League of Angels 3
-�퍑�`��
-�h���S���A�E�F�C�N��
+戦国義風
+ドラゴンアウェイクン
 World End Fantasy
+
