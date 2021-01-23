@@ -1,0 +1,17 @@
+
+2021/02/28まで時限です。
+
+無改造配布は可能。
+
+必要なファイル
+https://www.nuget.org/packages/CefSharp.WinForms/
+https://www.nuget.org/packages/CefSharp.Common/
+https://www.nuget.org/packages/cef.redist.x64/
+https://www.nuget.org/packages/cef.redist.x86/
+*CefSharpとcefは同系verでないと動きません。
+*ver 88はまだありませんがたぶんflashはx。
+
+Chromium系はメモリ使うので定期的にメモリクリーナーなどでメモリ圧縮するといい。
+flashは最小化するとCPU,GPU負荷極減りするので操作しないときはおすすめ。
+
+by taku
