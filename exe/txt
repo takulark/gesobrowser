@@ -1,17 +1,13 @@
 
-2021/02/28‚Ü‚ÅŒÀ‚Å‚·B
-
-–³‰ü‘¢”z•z‚Í‰Â”\B
-
-•K—v‚Èƒtƒ@ƒCƒ‹
+å¿…è¦ãªãƒ•ã‚¡ã‚¤ãƒ«
 https://www.nuget.org/packages/CefSharp.WinForms/
 https://www.nuget.org/packages/CefSharp.Common/
 https://www.nuget.org/packages/cef.redist.x64/
 https://www.nuget.org/packages/cef.redist.x86/
-*CefSharp‚Æcef‚Í“¯Œnver‚Å‚È‚¢‚Æ“®‚«‚Ü‚¹‚ñB
-*ver 88‚Í‚Ü‚¾‚ ‚è‚Ü‚¹‚ñ‚ª‚½‚Ô‚ñflash‚ÍxB
+*CefSharpã¨cefã¯åŒç³»verã§ãªã„ã¨å‹•ãã¾ã›ã‚“ã€‚
+*ver 88ã¯ã¾ã ã‚ã‚Šã¾ã›ã‚“ãŒãŸã¶ã‚“flashã¯xã€‚
 
-ChromiumŒn‚Íƒƒ‚ƒŠg‚¤‚Ì‚Å’èŠú“I‚Éƒƒ‚ƒŠƒNƒŠ[ƒi[‚È‚Ç‚Åƒƒ‚ƒŠˆ³k‚·‚é‚Æ‚¢‚¢B
-flash‚ÍÅ¬‰»‚·‚é‚ÆCPU,GPU•‰‰×‹ÉŒ¸‚è‚·‚é‚Ì‚Å‘€ì‚µ‚È‚¢‚Æ‚«‚Í‚¨‚·‚·‚ßB
+Chromiumç³»ã¯ãƒ¡ãƒ¢ãƒªä½¿ã†ã®ã§å®šæœŸçš„ã«ãƒ¡ãƒ¢ãƒªã‚¯ãƒªãƒ¼ãƒŠãƒ¼ãªã©ã§ãƒ¡ãƒ¢ãƒªåœ§ç¸®ã™ã‚‹ã¨ã„ã„ã€‚
+flashã¯æœ€å°åŒ–ã™ã‚‹ã¨CPU,GPUè² è·æ¥µæ¸›ã‚Šã™ã‚‹ã®ã§æ“ä½œã—ãªã„ã¨ãã¯ãŠã™ã™ã‚ã€‚
 
 by taku
