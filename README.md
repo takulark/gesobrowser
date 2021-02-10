@@ -22,5 +22,9 @@ UserData/実行ファイル名/ 自動で作成 Chromiumのデータ<br>
 League of Angels 2<br>
 League of Angels 3<br>
 戦国義風<br>
+ドラグーン・ナイツ<br>
 ドラゴンアウェイクン<br>
 World End Fantasy<br>
+
+2021/02/11<br>
+ドラグーン・ナイツ追加、bool.Parseでエラーになりやすいので修正、他多少修正<br>
