@@ -1,4 +1,4 @@
-﻿using System;
+・ｿusing System;
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
@@ -11,10 +11,6 @@ namespace gesobrowser
     static class Program
 
     {
-        /// <summary>
-        /// アプリケーションのメイン エントリ ポイントです。
-        /// </summary>
-        [STAThread]
         //       private static bool StartsWith(string s, string v) => CultureInfo.CurrentCulture.CompareInfo.IsPrefix(s, v, CompareOptions.IgnoreCase);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static string Client(string url)
@@ -38,6 +34,10 @@ namespace gesobrowser
             else if (url.StartsWith("dragonAwaken:", StringComparison.CurrentCultureIgnoreCase))
             {
                 return url.Substring(13) + "&mi=true&webkit=true";
+            }
+            else if (url.StartsWith("dragonminiclient:", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return url.Substring(21);
             }
             else if (url.StartsWith("http://") || url.StartsWith("https://"))
             {
@@ -66,7 +66,10 @@ namespace gesobrowser
             return null;
         }
 
-
+        /// <summary>
+        /// アプリケーションのメイン エントリ ポイントです。
+        /// </summary>
+        [STAThread]
         static void Main(string[] args)
         {
             //AppDomain.CurrentDomain.AssemblyResolve += Resolver;
@@ -78,6 +81,7 @@ namespace gesobrowser
             //	return;
             //}
             //a.Dispose();
+            //new Data().Chk();
             if (args.Length != 0)
             {
                 Application.EnableVisualStyles();
