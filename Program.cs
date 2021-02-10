@@ -81,7 +81,6 @@ namespace gesobrowser
             //	return;
             //}
             //a.Dispose();
-            //new Data().Chk();
             if (args.Length != 0)
             {
                 Application.EnableVisualStyles();
