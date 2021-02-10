@@ -1,4 +1,4 @@
-﻿using CefSharp;
+using CefSharp;
 using CefSharp.WinForms;
 using System;
 using System.Collections.Generic;
@@ -65,38 +65,38 @@ namespace gesobrowser
         }
         public BrowserForm(string url)
         {
-            AppPath = System.Windows.Forms.Application.ExecutablePath;
+            AppPath = Application.ExecutablePath;
             //ディレクトリ
-            AppDir = System.IO.Path.GetDirectoryName(AppPath);
+            AppDir = Path.GetDirectoryName(AppPath);
             //ファイル名
-            AppName = System.IO.Path.GetFileName(AppPath);
+            AppName = Path.GetFileName(AppPath);
             //ファイル名(拡張子含まず)
-            AppNameWoExt = System.IO.Path.ChangeExtension(AppName, null);
+            AppNameWoExt = Path.ChangeExtension(AppName, null);
             InitializeComponent();
-            System.IO.Directory.SetCurrentDirectory(AppDir);
+            Directory.SetCurrentDirectory(AppDir);
 
             string icofile = AppNameWoExt + ".ico";
 
             if (File.Exists(icofile))
             {
-                this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(icofile);
+                this.Icon = Icon.ExtractAssociatedIcon(icofile);
             }
             this.Text = AppNameWoExt;
             Ini = new InifileUtils(Path.Combine(AppDir, AppNameWoExt + ".ini"));
             string buf = Ini.GetValueString("Profile", "Window");
             if (buf != "")
             {
-                int x, y, w, h;
-                var fields = buf.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                x = int.Parse(fields[0]);
-                y = int.Parse(fields[1]);
-                w = int.Parse(fields[2]);
-                h = int.Parse(fields[3]);
+                //int x, y, w, h;
+                string[] fields = buf.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                //x = int.Parse(fields[0]);
+                //y = int.Parse(fields[1]);
+                //w = int.Parse(fields[2]);
+                //h = int.Parse(fields[3]);
                 WinApi.GetWindowPlacement(this.Handle, out Placement);
-                Placement.normalPosition.left = x;
-                Placement.normalPosition.top = y;
-                Placement.normalPosition.right = w;
-                Placement.normalPosition.bottom = h;
+                Placement.normalPosition.left = int.Parse(fields[0]);
+                Placement.normalPosition.top = int.Parse(fields[1]);
+                Placement.normalPosition.right = int.Parse(fields[2]);
+                Placement.normalPosition.bottom = int.Parse(fields[3]);
                 Placement.showCmd = WinApi.SW.SHOWNORMAL;
             }
             ZoomLevel = 100;
@@ -109,13 +109,13 @@ namespace gesobrowser
             buf = Ini.GetValueString("Profile", "audio");
             if (buf != "")
             {
-                IsAudio = bool.Parse(buf);
+                IsAudio = int.Parse(buf) == 0 ? false : true;//bool.Parse(buf);
             }
             IsDomain = false;
             buf = Ini.GetValueString("Profile", "domain");
             if (buf != "")
             {
-                IsDomain = bool.Parse(buf);
+                IsDomain = int.Parse(buf) == 0 ? false : true;//bool.Parse(buf);
             }
             DialogCloseShow = DialogResult.OK;
             buf = Ini.GetValueString("Profile", "DialogCloseShow");
@@ -164,20 +164,35 @@ namespace gesobrowser
             
             BrowserTablist = new List<BrowserTab>();
             InitBrowser();
-            browserPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            browserPanel.Dock = DockStyle.Fill;
+            tabControl1.Dock = DockStyle.Fill;
             base.ActiveControl = browserPanel;
 
             Newtabs(url);
-            this.WindowState = System.Windows.Forms.FormWindowState.Normal;
+            this.WindowState = FormWindowState.Normal;
             this.ShowInTaskbar = true;
 
-            ContextMenuStrip cntextStrip = new ContextMenuStrip();
-            cntextStrip.Items.Add("Tab Close", null, Closeck);
-            cntextStrip.Items.Add(new ToolStripSeparator());
-            cntextStrip.Items.Add("Tab Reload", null, Reloadck);
-            cntextStrip.Items.Add(new ToolStripSeparator());
-            tabControl1.ContextMenuStrip = cntextStrip;
+            //ContextMenuStrip cntextStrip = new ContextMenuStrip();
+            //cntextStrip.Items.Add("Tab Close", null, Closeck);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
+            //cntextStrip.Items.Add("Tab Reload", null, Reloadck);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
+            //tabControl1.ContextMenuStrip = cntextStrip;
+            //string[] array = new string[]{
+            //    "500","400","300","200","175","150","140","120","110",
+            //    "100","90","80","70","60","50","40","30","20","10"};
+
+            //ToolStripMenuItem[] items = new ToolStripMenuItem[array.Length];
+            //for (int i = 0; i < items.Length; i++)
+            //{
+            //    items[i] = new ToolStripMenuItem(array[i], null, Zoomck);
+
+            //}
+
+            //ToolStripMenuItem mnuItem = new ToolStripMenuItem("Zoom");
+            //mnuItem.DropDownItems.AddRange(items);
+            //cntextStrip.Items.Add(mnuItem);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
             string[] array = new string[]{
                 "500","400","300","200","175","150","140","120","110",
                 "100","90","80","70","60","50","40","30","20","10"};
@@ -191,8 +206,23 @@ namespace gesobrowser
 
             ToolStripMenuItem mnuItem = new ToolStripMenuItem("Zoom");
             mnuItem.DropDownItems.AddRange(items);
-            cntextStrip.Items.Add(mnuItem);
-            cntextStrip.Items.Add(new ToolStripSeparator());
+            tabControl1.ContextMenuStrip = new ContextMenuStrip
+            {
+                Items =
+                {
+                    {
+                        "Tab Close",(Image)null,(EventHandler)Closeck
+                    },
+                    (ToolStripItem)new ToolStripSeparator(),
+                    {
+                        "Tab Reload",(Image)null,(EventHandler)Reloadck
+                    },
+                    (ToolStripItem)new ToolStripSeparator(),
+                    (ToolStripItem)mnuItem,
+                    (ToolStripItem)new ToolStripSeparator()
+                }
+            };
+            //tabControl1.ContextMenuStrip = contextMenuStrip;
         }
         private double Zoomlv(double d) => Math.Log(d / 100.0) / Math.Log(double.Parse("1.2"));
 
@@ -225,8 +255,8 @@ namespace gesobrowser
                 if (tabControl1.TabCount == 1)
                 {
                     tabControl1.ItemSize = new Size(0, 1);
-                    tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
-                    tabControl1.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
+                    tabControl1.SizeMode = TabSizeMode.Fixed;
+                    tabControl1.Appearance = TabAppearance.FlatButtons;
                 }
             }
             else
@@ -241,45 +271,34 @@ namespace gesobrowser
         {
             if (Cef.IsInitialized == false)
             {
-                CefSettings obj = new CefSettings();
+                string dirx3264 = Path.Combine(AppDir,
+#if tx64
+                    "x64"
+#else
+                    "x86"
+#endif
+                    );
+                CefSettings obj = new CefSettings
+                {
+                    Locale = "ja-JP",
+                    UserAgent = UserAgent,
+                    IgnoreCertificateErrors = true,
+                    LogSeverity = LogSeverity.Disable,
+                    UserDataPath = Path.Combine(AppDir, "UserData", AppNameWoExt),
+                    LocalesDirPath = Path.Combine(dirx3264, "locales"),
+                    ResourcesDirPath = dirx3264,
+                    BrowserSubprocessPath = Path.Combine(dirx3264, "CefSharp.BrowserSubprocess.exe")
+                    //BrowserSubprocessPath = AppPath;
+                };
+                obj.CachePath = obj.UserDataPath;
                 string Stmp = Path.Combine(AppDir, "plugins", Flashdll);
                 if (File.Exists(Stmp))
                 {
                     obj.CefCommandLineArgs.Add("ppapi-flash-version", Flashversion);
                     obj.CefCommandLineArgs.Add("ppapi-flash-path", Stmp);
                 }
-                obj.Locale = "ja-JP";
-                obj.UserAgent = UserAgent;
-                obj.IgnoreCertificateErrors = true;
-                obj.LogSeverity = LogSeverity.Disable;
-                obj.UserDataPath = Path.Combine(AppDir, "UserData", AppNameWoExt);
-                obj.CachePath = obj.UserDataPath;
                 if (IsAudio == false)
                     obj.CefCommandLineArgs.Add("mute-audio");
-
-                Stmp = Path.Combine(AppDir,
-#if tx64
-        "x64"
-#else
-	"x86"
-#endif
-			, "CefSharp.BrowserSubprocess.exe");
-                obj.BrowserSubprocessPath = Stmp;
-                //obj.BrowserSubprocessPath = AppPath;
-                obj.LocalesDirPath = Path.Combine(AppDir,
-#if tx64
-        "x64"
-#else
-	"x86"
-#endif
-			, "locales");
-                obj.ResourcesDirPath = Path.Combine(AppDir,
-#if tx64
-        "x64"
-#else
-	"x86"
-#endif
-			);
                 if (Proxyserver != "")
                 {
                     obj.CefCommandLineArgs.Add("proxy-server", Proxyserver);
@@ -297,7 +316,7 @@ namespace gesobrowser
                 //				obj.CefCommandLineArgs.Add("disable-plugins-discovery", "1");
                 Cef.Initialize(obj);
             }
-            var contx = Cef.GetGlobalRequestContext();
+            IRequestContext contx = Cef.GetGlobalRequestContext();
             Cef.UIThreadTaskFactory.StartNew(delegate
             {
                 contx.SetPreference("profile.default_content_setting_values.plugins", 1, out string err);
@@ -318,7 +337,7 @@ namespace gesobrowser
                 Tab = new TabPage
                 {
                     Text = TabTitle(s),
-                    Dock = System.Windows.Forms.DockStyle.Fill
+                    Dock = DockStyle.Fill
                 };
                 int num = Math.Max(Tab.Text.Length, 30);
                 Tab.Text = Tab.Text.PadLeft(num);
@@ -328,8 +347,8 @@ namespace gesobrowser
                 else if (t.TabCount == 2)
                 {
                     t.ItemSize = new Size(30, 30);
-                    t.SizeMode = System.Windows.Forms.TabSizeMode.FillToRight;
-                    t.Appearance = System.Windows.Forms.TabAppearance.Normal;
+                    t.SizeMode = TabSizeMode.FillToRight;
+                    t.Appearance = TabAppearance.Normal;
                 }
                 ChromeBrowser = null;
                 if (Create == false) return;
@@ -343,7 +362,6 @@ namespace gesobrowser
             private string TabTitle(string url)
             {
                 NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(new Uri(url).Query);
-                //			base.WindowState = FormWindowState.Maximized;
                 string a = nameValueCollection["ServerId"];
                 if (a != null && a.Length != 0 && url.IndexOf("sengokugifu") > 0)
                 {
@@ -353,7 +371,14 @@ namespace gesobrowser
                 a = nameValueCollection["server_id"];
                 if (a != null && a.Length != 0 && url.IndexOf("ingame") > 0)
                 {
-                    this.Text = "ドラゴンアウェイクン"; return a;
+                    if (url.IndexOf("dragonknight") > 0)
+                    {
+                        this.Text = "ドラグーン・ナイツ"; return a;
+                    }
+                    else
+                    {
+                        this.Text = "ドラゴンアウェイクン"; return a;
+                    }
                 }
                 a = nameValueCollection["sid"];
                 if (a != null && a.Length != 0)
@@ -400,26 +425,36 @@ namespace gesobrowser
             browserTab.ChromeBrowser.FrameLoadEnd += ChromeBrowserOnFrameLoadEnd;
             return;
         }
-        private string ReceiveString(ref Message m)
-        {
-            string data;
-            try
-            {
-                WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
-                //WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.COPYDATASTRUCT));
-                data = cds.lpData;
-                data = data.Substring(0, cds.cbData / 2);
-            }
-            catch { data = null; }
-            return data;
-        }
+        //private string ReceiveString(ref Message m)
+        //{
+        //    string data;
+        //    try
+        //    {
+        //        WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
+        //        //WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.COPYDATASTRUCT));
+        //        data = cds.lpData;
+        //        data = data.Substring(0, cds.cbData / 2);
+        //    }
+        //    catch { data = null; }
+        //    return data;
+        //}
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == WinApi.WM_COPYDATA)//&& (int)m.WParam== WinApi.WM_USER1)
             {
-                string str = ReceiveString(ref m);
-                if (str != null)
-                    Newtabs(str);
+                //string str = ReceiveString(ref m);
+                //if (str != null)
+                //    Newtabs(str);
+                try
+                {
+                    WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
+                    //WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.COPYDATASTRUCT));
+                    string data = cds.lpData;
+                    data = data.Substring(0, cds.cbData / 2);
+                    Newtabs(data);
+                }
+                catch { }
+                return;
             }
             base.WndProc(ref m);
         }
@@ -429,7 +464,7 @@ namespace gesobrowser
             Process curProcess = Process.GetCurrentProcess();
             WinApi.SetWindowPlacement(curProcess.MainWindowHandle, ref Placement);
         }
-        private void TabControl1_DrawItem(object sender, System.Windows.Forms.DrawItemEventArgs e)
+        private void TabControl1_DrawItem(object sender, DrawItemEventArgs e)
         {
             TabPage CurrentTab = tabControl1.TabPages[e.Index];
             Rectangle ItemRect = tabControl1.GetTabRect(e.Index);
@@ -440,22 +475,22 @@ namespace gesobrowser
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            if (System.Convert.ToBoolean(e.State & DrawItemState.Selected))
+            if (Convert.ToBoolean(e.State & DrawItemState.Selected))
             {
                 FillBrush.Color = TabColor[2];
                 TextBrush.Color = TabColor[3];
                 ItemRect.Inflate(2, 2);
             }
-            if (tabControl1.Alignment == TabAlignment.Left || tabControl1.Alignment == TabAlignment.Right)
-            {
-                float RotateAngle = 90;
-                if (tabControl1.Alignment == TabAlignment.Left)
-                    RotateAngle = 270;
-                PointF cp = new PointF(ItemRect.Left + (ItemRect.Width / 2), ItemRect.Top + (ItemRect.Height / 2));
-                e.Graphics.TranslateTransform(cp.X, cp.Y);
-                e.Graphics.RotateTransform(RotateAngle);
-                ItemRect = new Rectangle(-(ItemRect.Height / 2), -(ItemRect.Width / 2), ItemRect.Height, ItemRect.Width);
-            }
+            //if (tabControl1.Alignment == TabAlignment.Left || tabControl1.Alignment == TabAlignment.Right)
+            //{
+            //    float RotateAngle = 90;
+            //    if (tabControl1.Alignment == TabAlignment.Left)
+            //        RotateAngle = 270;
+            //    PointF cp = new PointF(ItemRect.Left + (ItemRect.Width / 2), ItemRect.Top + (ItemRect.Height / 2));
+            //    e.Graphics.TranslateTransform(cp.X, cp.Y);
+            //    e.Graphics.RotateTransform(RotateAngle);
+            //    ItemRect = new Rectangle(-(ItemRect.Height / 2), -(ItemRect.Width / 2), ItemRect.Height, ItemRect.Width);
+            //}
             e.Graphics.FillRectangle(FillBrush, ItemRect);
             e.Graphics.DrawString(CurrentTab.Text, e.Font, TextBrush, (RectangleF)ItemRect, sf);
             e.Graphics.ResetTransform();
