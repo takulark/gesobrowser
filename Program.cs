@@ -1,4 +1,4 @@
-・ｿusing System;
+using System;
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
@@ -8,10 +8,40 @@ using System.Runtime.CompilerServices;
 
 namespace gesobrowser
 {
-    static class Program
-
+    public static class Setup
     {
-        //       private static bool StartsWith(string s, string v) => CultureInfo.CurrentCulture.CompareInfo.IsPrefix(s, v, CompareOptions.IgnoreCase);
+        public static string AppPath { get; set; }
+        public static string AppDir { get; set; }
+        public static string AppName { get; set; }
+        public static string AppNameWoExt { get; set; }
+        public static string Dirx3264 { get; set; }
+        //var t;
+        public static void Init(){
+            AppPath = Application.ExecutablePath;
+            //ディレクトリ
+            AppDir = Path.GetDirectoryName(AppPath);
+            //ファイル名
+            AppName = Path.GetFileName(AppPath);
+            //ファイル名(拡張子含まず)
+            AppNameWoExt = Path.ChangeExtension(AppName, null);
+            string Ext =
+#if tx64
+                    "x64";
+#else
+                    "x86";
+#endif
+            int s = AppNameWoExt.LastIndexOf(Ext);
+            if (s>0)
+            {
+                Ext=AppNameWoExt.Substring(s);
+                AppNameWoExt = AppNameWoExt.Substring(0,s-1);
+            }
+            Dirx3264 = Path.Combine(AppDir,Ext);
+        }
+    }
+    static class Program
+    {
+        //private static bool StartsWith(string s, string v) => CultureInfo.CurrentCulture.CompareInfo.IsPrefix(s, v, CompareOptions.IgnoreCase);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static string Client(string url)
         {
@@ -73,49 +103,88 @@ namespace gesobrowser
         static void Main(string[] args)
         {
             //AppDomain.CurrentDomain.AssemblyResolve += Resolver;
-            //var a=new Subprocess(args);
-            //if (a.parentProcessId != null)
+            //CefSharp.Cef.EnableHighDPISupport();
+            //var exitCode = CefSharp.BrowserSubprocess.SelfHost.Main(args);
+            //if (exitCode >= 0)
             //{
-            //	a.Submain(args);
-            //	a.Dispose();
-            //	return;
+            //    return;
             //}
-            //a.Dispose();
             if (args.Length != 0)
             {
+                Setup.Init();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(defaultValue: false);
                 AppDomain.CurrentDomain.AssemblyResolve += Resolver;
-
-                string url = Client(args[0]);
+                string arg = args[0];
+                int cnt = -1;
+                if (arg.StartsWith("tabcnt"))
+                {
+                    cnt = Math.Max(int.Parse(arg.Substring(7)),1);
+                    arg = args[1];
+                }
+                string url = Client(arg);
                 if (url != "")
                 {
                     Process curProcess = GetPreviousProcess();
-                    if (curProcess == null)
-                    {
-                        Application.Run(new BrowserForm(url));
+                    switch (cnt) {
+                        case 0:
+                        case 1:
+                            Application.Run(new BrowserForm(url));
+                            return;
+                        default:
+                            if (curProcess == null)
+                                goto case 0;
+                            if (cnt != -1)
+                            {
+                                int r = WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_APP1, (UIntPtr)WinApi.WM_APP1, (IntPtr)cnt);
+                                if (cnt <= r)
+                                    goto case 0;
+                            }
+                            WinApi.COPYDATASTRUCT cds = new WinApi.COPYDATASTRUCT
+                            {
+                                dwData = new IntPtr(WinApi.WM_APP),
+                                lpData = url,
+                                cbData = url.Length * sizeof(char)
+                            };
+                            IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(cds));
+                            Marshal.StructureToPtr(cds, pnt, false);
+                            WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, (UIntPtr)WinApi.WM_APP, pnt);
+                            Marshal.FreeHGlobal(pnt);
+                            if (WinApi.IsIconic(curProcess.MainWindowHandle))
+                            {
+                                WinApi.ShowWindow(curProcess.MainWindowHandle, WinApi.SW.SHOWNORMAL);
+                            }
+                            WinApi.SetForegroundWindow(curProcess.MainWindowHandle);
+                            WinApi.UpdateWindow(curProcess.MainWindowHandle);
+                            WinApi.SetFocus(curProcess.MainWindowHandle);
+                            return;
                     }
-                    else
-                    {
-                        WinApi.COPYDATASTRUCT cds = new WinApi.COPYDATASTRUCT
-                        {
-                            dwData = new IntPtr(WinApi.WM_APP),
-                            lpData = url,
-                            cbData = url.Length * sizeof(char)
-                        };
-                        //WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, IntPtr.Zero, ref cds);
-                        IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(cds));
-                        Marshal.StructureToPtr(cds, pnt, false);
-                        WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, new UIntPtr(WinApi.WM_APP), pnt);
-                        Marshal.FreeHGlobal(pnt);
-                        if (WinApi.IsIconic(curProcess.MainWindowHandle))
-                        {
-                            WinApi.ShowWindow(curProcess.MainWindowHandle, WinApi.SW.SHOWNORMAL);
-                        }
-                        WinApi.SetForegroundWindow(curProcess.MainWindowHandle);
-                        WinApi.UpdateWindow(curProcess.MainWindowHandle);
-                        WinApi.SetFocus(curProcess.MainWindowHandle);
-                    }
+                    
+                    //if (curProcess == null)
+                    //{
+                    //    Application.Run(new BrowserForm(url));
+                    //}
+                    //else
+                    //{
+                    //    WinApi.COPYDATASTRUCT cds = new WinApi.COPYDATASTRUCT
+                    //    {
+                    //        dwData = new IntPtr(WinApi.WM_APP),
+                    //        lpData = url,
+                    //        cbData = url.Length * sizeof(char)
+                    //    };
+                    //    //WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, IntPtr.Zero, ref cds);
+                    //    IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(cds));
+                    //    Marshal.StructureToPtr(cds, pnt, false);
+                    //    WinApi.SendMessage(curProcess.MainWindowHandle, WinApi.WM_COPYDATA, new UIntPtr(WinApi.WM_APP), pnt);
+                    //    Marshal.FreeHGlobal(pnt);
+                    //    if (WinApi.IsIconic(curProcess.MainWindowHandle))
+                    //    {
+                    //        WinApi.ShowWindow(curProcess.MainWindowHandle, WinApi.SW.SHOWNORMAL);
+                    //    }
+                    //    WinApi.SetForegroundWindow(curProcess.MainWindowHandle);
+                    //    WinApi.UpdateWindow(curProcess.MainWindowHandle);
+                    //    WinApi.SetFocus(curProcess.MainWindowHandle);
+                    //}
                 }
                 else
                 {
@@ -128,14 +197,7 @@ namespace gesobrowser
             if (args.Name.StartsWith("CefSharp"))
             {
                 string assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
-                string archSpecificPath = Path.Combine(AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-#if tx64
-        "x64"
-#else
-	"x86"
-#endif
-                                                       //Environment.Is64BitProcess ? "x64" : "x86",
-                                                       , assemblyName);
+                string archSpecificPath = Path.Combine(Setup.Dirx3264, assemblyName);
 
                 return File.Exists(archSpecificPath)
                            ? Assembly.LoadFile(archSpecificPath)
