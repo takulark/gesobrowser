@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 
 namespace gesobrowser
@@ -28,9 +28,26 @@ namespace gesobrowser
 
             return sb.ToString();
         }
-        public int GetValueInt(String section, String key)
+        public String GetValueString(String section, String key, String b)
         {
-            return (int)WinApi.GetPrivateProfileInt(section, key, 0, FilePath);
+            section=GetValueString(section, key);
+            if (section == "")
+                return b;
+            return section;
+        }
+        public int GetValueString(String section, String key,int b=0)
+        {
+            section = GetValueString(section, key);
+            if (section == "")
+                return b;
+            return int.Parse(section);
+        }
+        public double GetValueString(String section, String key, double b = 0)
+        {
+            section = GetValueString(section, key);
+            if (section == "")
+                return b;
+            return double.Parse(section);
         }
         public void SetValue(String section, String key, int val)
         {
