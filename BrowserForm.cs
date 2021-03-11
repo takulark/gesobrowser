@@ -16,10 +16,6 @@ namespace gesobrowser
         private string Flashdll { get; set; }
         private string Flashversion { get; set; }
         private string UserAgent { get; set; }
-        private string AppPath { get; set; }
-        private string AppDir { get; set; }
-        private string AppName { get; set; }
-        private string AppNameWoExt { get; set; }
         private string Proxyserver { get; set; }
         private bool IsAudio { get; set; }
         public bool IsDomain { get; set; }
@@ -30,7 +26,7 @@ namespace gesobrowser
         private CefLibraryHandle LibraryLoader { get; set; }
         public IList<BrowserTab> BrowserTablist { get; set; }
         private Color[] TabColor { get; set; }
-
+        private IntPtr HWnd { get; set; }
         private void BrowserForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             DialogResult chk = DialogResult.OK;
@@ -40,7 +36,7 @@ namespace gesobrowser
             }
             if (chk == DialogResult.OK)
             {
-                WinApi.GetWindowPlacement(this.Handle, out Placement);
+                WinApi.GetWindowPlacement(HWnd, out Placement);
                 string Stmp = $"{Placement.normalPosition.left}, {Placement.normalPosition.top}, {Placement.normalPosition.right}, {Placement.normalPosition.bottom}";
                 if (Placement.normalPosition.left >= 0)
                 { Ini.SetValue("Profile", "Window", Stmp); }
@@ -65,85 +61,35 @@ namespace gesobrowser
         }
         public BrowserForm(string url)
         {
-            AppPath = Application.ExecutablePath;
-            //ディレクトリ
-            AppDir = Path.GetDirectoryName(AppPath);
-            //ファイル名
-            AppName = Path.GetFileName(AppPath);
-            //ファイル名(拡張子含まず)
-            AppNameWoExt = Path.ChangeExtension(AppName, null);
             InitializeComponent();
-            Directory.SetCurrentDirectory(AppDir);
-
-            string icofile = AppNameWoExt + ".ico";
-
-            if (File.Exists(icofile))
-            {
-                this.Icon = Icon.ExtractAssociatedIcon(icofile);
-            }
-            this.Text = AppNameWoExt;
-            Ini = new InifileUtils(Path.Combine(AppDir, AppNameWoExt + ".ini"));
-            string buf = Ini.GetValueString("Profile", "Window");
+            Directory.SetCurrentDirectory(Setup.AppDir);
+            HWnd = this.Handle;
+            string buf = Setup.AppNameWoExt + ".ico";
+            this.Icon = File.Exists(buf) ? Icon.ExtractAssociatedIcon(buf) : null;
+            this.Text = Setup.AppNameWoExt;
+            Ini = new InifileUtils(Path.Combine(Setup.AppDir, Setup.AppNameWoExt + ".ini"));
+            buf = Ini.GetValueString("Profile", "Window");
             if (buf != "")
             {
-                //int x, y, w, h;
                 string[] fields = buf.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                //x = int.Parse(fields[0]);
-                //y = int.Parse(fields[1]);
-                //w = int.Parse(fields[2]);
-                //h = int.Parse(fields[3]);
-                WinApi.GetWindowPlacement(this.Handle, out Placement);
+                WinApi.GetWindowPlacement(HWnd, out Placement);
                 Placement.normalPosition.left = int.Parse(fields[0]);
                 Placement.normalPosition.top = int.Parse(fields[1]);
                 Placement.normalPosition.right = int.Parse(fields[2]);
                 Placement.normalPosition.bottom = int.Parse(fields[3]);
                 Placement.showCmd = WinApi.SW.SHOWNORMAL;
+                //WinApi.SetWindowPlacement(HWnd, ref Placement);
             }
-            ZoomLevel = 100;
-            buf = Ini.GetValueString("Profile", "ZoomLevel");
-            if (buf != "")
-            {
-                ZoomLevel = double.Parse(buf);
-            }
-            IsAudio = false;
-            buf = Ini.GetValueString("Profile", "audio");
-            if (buf != "")
-            {
-                IsAudio = int.Parse(buf) == 0 ? false : true;//bool.Parse(buf);
-            }
-            IsDomain = false;
-            buf = Ini.GetValueString("Profile", "domain");
-            if (buf != "")
-            {
-                IsDomain = int.Parse(buf) == 0 ? false : true;//bool.Parse(buf);
-            }
-            DialogCloseShow = DialogResult.OK;
-            buf = Ini.GetValueString("Profile", "DialogCloseShow");
-            if (buf != "")
-            {
-                DialogCloseShow = (DialogResult)int.Parse(buf);
-            
-            }
-            UserAgent =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36";
-            buf = Ini.GetValueString("Profile", "UserAgent");
-            if (buf != "")
-            {
-                UserAgent = buf;
-            }
+            ZoomLevel = Ini.GetValueString("Profile", "ZoomLevel",100.0);
+            IsAudio = Ini.GetValueString("Profile", "audio",0) != 0;
+            IsDomain = Ini.GetValueString("Profile", "domain", 0) != 0;
+            DialogCloseShow = (DialogResult)Ini.GetValueString("Profile", "DialogCloseShow", 1);
+            UserAgent = Ini.GetValueString("Profile", "UserAgent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36"
+                );
             Proxyserver = Ini.GetValueString("Profile", "proxy");
-            Flashdll = "pepflashplayer.dll";
-            buf = Ini.GetValueString("Profile", "flashdll");
-            if (buf != "")
-            {
-                Flashdll = buf;
-            }
-            Flashversion = "32.0.0.453";
-            buf = Ini.GetValueString("Profile", "flashversion");
-            if (buf != "")
-            {
-                Flashversion = buf;
-            }
+            Flashdll = Ini.GetValueString("Profile", "flashdll","pepflashplayer.dll");
+            Flashversion = Ini.GetValueString("Profile", "flashversion", "32.0.0.453");
             TabColor = new Color[4] { SystemColors.Control, Color.Black, Color.LightBlue, Color.Black };
             for (int i = 0; i < 4; i++)
             {
@@ -153,15 +99,7 @@ namespace gesobrowser
                     TabColor[i] = ColorTranslator.FromHtml(buf);
                 }
             }
-            LibraryLoader = new CefLibraryHandle(Path.Combine(AppDir,
-#if tx64
-        "x64"
-#else
-	"x86"
-#endif
-		, "libcef.dll"));
-            if (LibraryLoader.IsInvalid) { throw new Exception("no lib"); }
-            
+
             BrowserTablist = new List<BrowserTab>();
             InitBrowser();
             browserPanel.Dock = DockStyle.Fill;
@@ -169,30 +107,11 @@ namespace gesobrowser
             base.ActiveControl = browserPanel;
 
             Newtabs(url);
+
+            WinApi.SetWindowPlacement(HWnd, ref Placement);
             this.WindowState = FormWindowState.Normal;
             this.ShowInTaskbar = true;
 
-            //ContextMenuStrip cntextStrip = new ContextMenuStrip();
-            //cntextStrip.Items.Add("Tab Close", null, Closeck);
-            //cntextStrip.Items.Add(new ToolStripSeparator());
-            //cntextStrip.Items.Add("Tab Reload", null, Reloadck);
-            //cntextStrip.Items.Add(new ToolStripSeparator());
-            //tabControl1.ContextMenuStrip = cntextStrip;
-            //string[] array = new string[]{
-            //    "500","400","300","200","175","150","140","120","110",
-            //    "100","90","80","70","60","50","40","30","20","10"};
-
-            //ToolStripMenuItem[] items = new ToolStripMenuItem[array.Length];
-            //for (int i = 0; i < items.Length; i++)
-            //{
-            //    items[i] = new ToolStripMenuItem(array[i], null, Zoomck);
-
-            //}
-
-            //ToolStripMenuItem mnuItem = new ToolStripMenuItem("Zoom");
-            //mnuItem.DropDownItems.AddRange(items);
-            //cntextStrip.Items.Add(mnuItem);
-            //cntextStrip.Items.Add(new ToolStripSeparator());
             string[] array = new string[]{
                 "500","400","300","200","175","150","140","120","110",
                 "100","90","80","70","60","50","40","30","20","10"};
@@ -219,12 +138,16 @@ namespace gesobrowser
                     },
                     (ToolStripItem)new ToolStripSeparator(),
                     (ToolStripItem)mnuItem,
-                    (ToolStripItem)new ToolStripSeparator()
+                    (ToolStripItem)new ToolStripSeparator(),
+                    {
+                        "height(body,embed)",(Image)null,(EventHandler)Jsck
+                    },
+                    (ToolStripItem)new ToolStripSeparator(),
                 }
             };
             //tabControl1.ContextMenuStrip = contextMenuStrip;
         }
-        private double Zoomlv(double d) => Math.Log(d / 100.0) / Math.Log(double.Parse("1.2"));
+            private double Zoomlv(double d) => Math.Log(d / 100.0) / Math.Log(double.Parse("1.2"));
 
         //private double Zoomlv(double d)
         //{
@@ -243,7 +166,6 @@ namespace gesobrowser
         private void Closeck(object sender, EventArgs e)
         {
             int i = tabControl1.SelectedIndex;
-            //IBrowser browser = BrowserTablist[i].ChromeBrowser != null?BrowserTablist[i].ChromeBrowser.GetBrowser():null;
             IBrowser browser = BrowserTablist[i].ChromeBrowser?.GetBrowser();
             if (tabControl1.TabCount > 1)
             {
@@ -267,31 +189,42 @@ namespace gesobrowser
             int i = tabControl1.SelectedIndex;
             if (BrowserTablist[i].ChromeBrowser != null) BrowserTablist[i].ChromeBrowser.GetBrowser().Reload();
         }
+        private void Jsck(object sender, EventArgs e)
+        {
+            int i = tabControl1.SelectedIndex;
+            if (BrowserTablist[i].ChromeBrowser != null)
+            {
+                IFrame frame = BrowserTablist[i].ChromeBrowser.GetBrowser().MainFrame;
+                int h = BrowserTablist[i].Tab.Size.Height;
+                if (h > 800) h = 800;
+                string s = $"{{document.body.style.height='{h}px';}}";
+                frame.ExecuteJavaScriptAsync(s);
+                s = $"{{var embed = document.embeds[0];embed.style.height='{h}px';}}";
+                frame.ExecuteJavaScriptAsync(s);
+            }
+        }
         private void InitBrowser()
         {
+            LibraryLoader = new CefLibraryHandle(Path.Combine(Setup.Dirx3264, "libcef.dll"));
+            if (LibraryLoader.IsInvalid) { throw new Exception("no lib"); }
+
             if (Cef.IsInitialized == false)
             {
-                string dirx3264 = Path.Combine(AppDir,
-#if tx64
-                    "x64"
-#else
-                    "x86"
-#endif
-                    );
                 CefSettings obj = new CefSettings
                 {
                     Locale = "ja-JP",
                     UserAgent = UserAgent,
                     IgnoreCertificateErrors = true,
                     LogSeverity = LogSeverity.Disable,
-                    UserDataPath = Path.Combine(AppDir, "UserData", AppNameWoExt),
-                    LocalesDirPath = Path.Combine(dirx3264, "locales"),
-                    ResourcesDirPath = dirx3264,
-                    BrowserSubprocessPath = Path.Combine(dirx3264, "CefSharp.BrowserSubprocess.exe")
-                    //BrowserSubprocessPath = AppPath;
+                    UserDataPath = Path.Combine(Setup.AppDir, "UserData", Setup.AppNameWoExt),
+                    LocalesDirPath = Path.Combine(Setup.Dirx3264, "locales"),
+                    ResourcesDirPath = Setup.Dirx3264,
+                    //BrowserSubprocessPath = Path.Combine(Setup.Dirx3264, "GesoBrowserSubProcess.exe")
+                    BrowserSubprocessPath = Path.Combine(Setup.Dirx3264, "CefSharp.BrowserSubprocess.exe")
+                    //BrowserSubprocessPath = Setup.AppPath
                 };
                 obj.CachePath = obj.UserDataPath;
-                string Stmp = Path.Combine(AppDir, "plugins", Flashdll);
+                string Stmp = Path.Combine(Setup.AppDir, "plugins", Flashdll);
                 if (File.Exists(Stmp))
                 {
                     obj.CefCommandLineArgs.Add("ppapi-flash-version", Flashversion);
@@ -401,7 +334,7 @@ namespace gesobrowser
                         this.Text = "World End Fantasy"; return a;
                     }
                 }
-                return this.Text = "gesobrowser";
+                return this.Text = Setup.AppNameWoExt;//"gesobrowser";
             }
 
         }
@@ -455,14 +388,19 @@ namespace gesobrowser
                 }
                 catch { }
                 return;
+            }            
+            if (m.Msg == WinApi.WM_APP1) {
+                m.Result = (IntPtr)BrowserTablist.Count;
+                return;
             }
             base.WndProc(ref m);
         }
         private void ChromeBrowserOnFrameLoadEnd(object sender, EventArgs e)
         {
             BrowserTablist[0].ChromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
-            Process curProcess = Process.GetCurrentProcess();
-            WinApi.SetWindowPlacement(curProcess.MainWindowHandle, ref Placement);
+            //Process curProcess = Process.GetCurrentProcess();
+            //WinApi.SetWindowPlacement(curProcess.MainWindowHandle, ref Placement);
+            //WinApi.SetWindowPlacement(HWnd, ref Placement);
         }
         private void TabControl1_DrawItem(object sender, DrawItemEventArgs e)
         {
