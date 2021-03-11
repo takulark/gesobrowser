@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -79,7 +79,7 @@ namespace gesobrowser
         public const int WM_COPYDATA = 0x4A;
         public const int WM_SETICON = 0x80;
         public const int WM_APP = 0x8001;
-
+        public const int WM_APP1= WM_APP+1;
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetFocus(IntPtr hWnd);
