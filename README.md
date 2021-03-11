@@ -45,5 +45,5 @@ World End Fantasy(flash.ocx)<br>
 embed.style.height=100%=150px<br>
 ・コマンドライン引数で既定のtab数で新プロセスになるようにした。<br>
  tabcont=0,1は1プロセス毎<br>
-・Chromiumのはx86|x64フォルダベースですが実行ファイル名に.x86|x64-86.exeにするとそのフォルダベースに。<br>
+・CefSharp,Chromiumファイルはx86|x64フォルダベースですが実行ファイル名に.x86|x64-86.exeにするとそのフォルダベースに。<br>
 ・他多少修正<br>
