@@ -11,7 +11,7 @@ dotnet add package cef.redist.x64 --version 86.0.24<br>
 dotnet add package CefSharp.Common --version 86.0.241<br>
 dotnet add package CefSharp.WinForms --version 86.0.241<br>
 これ忘れるとビルドできない<br>
-<PropertyGroup><CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport></PropertyGroup><br>
+\<PropertyGroup><CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>\</PropertyGroup><br>
 <br>
 
 flashが含まれるため<br>
