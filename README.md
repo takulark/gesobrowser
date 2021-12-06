@@ -39,11 +39,13 @@ World End Fantasy(flash.ocx)<br>
 2021/02/11<br>
 ・ドラグーン・ナイツ追加<br>
 ・bool.Parseでエラーになりやすいので修正<br>
-・他多少修正<br>
 2021/03/11<br>
 ・Chromium: 87で直swfがheight=150pxになるのでbody.style.height=embed.style.height=を800以下になるようにメニューに追加<br>
 embed.style.height=100%=150px<br>
 ・コマンドライン引数で既定のtab数で新プロセスになるようにした。<br>
  tabcont=0,1は1プロセス毎<br>
 ・CefSharp,Chromiumファイルはx86|x64フォルダベースですが実行ファイル名に.x86|x64-86.exeにするとそのフォルダベースに。<br>
+2021/12/06<br>
+・プロキシを起動中on/offできるように(ipも変えれる)
+・プロセス数でUserDataを変更。(同じだと問題あるので)
 ・他多少修正<br>
