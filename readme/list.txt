@@ -34,3 +34,8 @@ x64/swiftshader/libGLESv2.dll
   packages/CefSharp.WinForms.86.0.241/CefSharp/x86/
   packages/CefSharp.Common.86.0.241/CefSharp/x64/
   packages/CefSharp.Common.86.0.241/CefSharp/x86/
+
+x64-86/
+ 86.0.241.0
+x64-87/
+ 87.1.132.0
