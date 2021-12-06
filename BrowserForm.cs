@@ -71,13 +71,16 @@ namespace gesobrowser
             buf = Ini.GetValueString("Profile", "Window");
             if (buf != "")
             {
+                //int x, y, w, h;
                 string[] fields = buf.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                 WinApi.GetWindowPlacement(HWnd, out Placement);
                 Placement.normalPosition.left = int.Parse(fields[0]);
                 Placement.normalPosition.top = int.Parse(fields[1]);
                 Placement.normalPosition.right = int.Parse(fields[2]);
                 Placement.normalPosition.bottom = int.Parse(fields[3]);
+                //Placement.showCmd = WinApi.SW.HIDE;
                 Placement.showCmd = WinApi.SW.SHOWNORMAL;
+                //this.Size = new Size(Placement.normalPosition.right, Placement.normalPosition.bottom);
                 //WinApi.SetWindowPlacement(HWnd, ref Placement);
             }
             ZoomLevel = Ini.GetValueString("Profile", "ZoomLevel",100.0);
@@ -87,7 +90,7 @@ namespace gesobrowser
             UserAgent = Ini.GetValueString("Profile", "UserAgent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36"
                 );
-            Proxyserver = Ini.GetValueString("Profile", "proxy");
+            //Proxyserver = Ini.GetValueString("Profile", "proxy");
             Flashdll = Ini.GetValueString("Profile", "flashdll","pepflashplayer.dll");
             Flashversion = Ini.GetValueString("Profile", "flashversion", "32.0.0.453");
             TabColor = new Color[4] { SystemColors.Control, Color.Black, Color.LightBlue, Color.Black };
@@ -112,6 +115,24 @@ namespace gesobrowser
             this.WindowState = FormWindowState.Normal;
             this.ShowInTaskbar = true;
 
+            //ContextMenuStrip cntextStrip = new ContextMenuStrip();
+            //cntextStrip.Items.Add("Tab Close", null, Closeck);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
+            //cntextStrip.Items.Add("Tab Reload", null, Reloadck);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
+            //tabControl1.ContextMenuStrip = cntextStrip;
+            //string[] array = new string[]{
+            //    "500","400","300","200","175","150","140","120","110",
+            //    "100","90","80","70","60","50","40","30","20","10"};
+            //ToolStripMenuItem[] items = new ToolStripMenuItem[array.Length];
+            //for (int i = 0; i < items.Length; i++)
+            //{
+            //    items[i] = new ToolStripMenuItem(array[i], null, Zoomck);
+            //}
+            //ToolStripMenuItem mnuItem = new ToolStripMenuItem("Zoom");
+            //mnuItem.DropDownItems.AddRange(items);
+            //cntextStrip.Items.Add(mnuItem);
+            //cntextStrip.Items.Add(new ToolStripSeparator());
             string[] array = new string[]{
                 "500","400","300","200","175","150","140","120","110",
                 "100","90","80","70","60","50","40","30","20","10"};
@@ -143,19 +164,28 @@ namespace gesobrowser
                         "height(body,embed)",(Image)null,(EventHandler)Jsck
                     },
                     (ToolStripItem)new ToolStripSeparator(),
+                     {
+                        "proxy",(Image)null,(EventHandler)Proxyck
+                    },
+                    (ToolStripItem)new ToolStripSeparator(),
                 }
             };
             //tabControl1.ContextMenuStrip = contextMenuStrip;
         }
-            private double Zoomlv(double d) => Math.Log(d / 100.0) / Math.Log(double.Parse("1.2"));
-
-        //private double Zoomlv(double d)
-        //{
-        //	double lZoomLevel = Math.Log(double.Parse("1.2"));
-        //	lZoomLevel = Math.Log(d / 100) / lZoomLevel;
-        //	return lZoomLevel;
-        //	return Math.Max(lZoomLevel,0);
-        //}
+        private void Proxyck(object sender, EventArgs e)
+        {
+            Proxyserver = Proxyserver == "" ? Ini.GetValueString("Profile", "proxyserver") : "";
+            Cef.UIThreadTaskFactory.StartNew(delegate
+            {
+                var v = new Dictionary<string, object>
+                {
+                    { "mode", "fixed_servers" },
+                    { "server", Proxyserver },
+                };
+                Cef.GetGlobalRequestContext().SetPreference("proxy", v, out String error);
+            });
+        }
+        private double Zoomlv(double d) => Math.Log(d / 100.0) / Math.Log(double.Parse("1.2"));
         private void Zoomck(object sender, EventArgs e)
         {
             ZoomLevel = double.Parse(((ToolStripMenuItem)sender).Text.ToString());
@@ -197,7 +227,6 @@ namespace gesobrowser
                 IFrame frame = BrowserTablist[i].ChromeBrowser.GetBrowser().MainFrame;
                 int h = BrowserTablist[i].Tab.Size.Height;
                 if (h > 800) h = 800;
-                string s = $"{{document.body.style.height='{h}px';}}";
                 frame.ExecuteJavaScriptAsync(s);
                 s = $"{{var embed = document.embeds[0];embed.style.height='{h}px';}}";
                 frame.ExecuteJavaScriptAsync(s);
@@ -216,12 +245,11 @@ namespace gesobrowser
                     UserAgent = UserAgent,
                     IgnoreCertificateErrors = true,
                     LogSeverity = LogSeverity.Disable,
-                    UserDataPath = Path.Combine(Setup.AppDir, "UserData", Setup.AppNameWoExt),
+                    UserDataPath = Path.Combine(Setup.AppDir, Setup.UserData, Setup.AppNameWoExt),
                     LocalesDirPath = Path.Combine(Setup.Dirx3264, "locales"),
                     ResourcesDirPath = Setup.Dirx3264,
-                    //BrowserSubprocessPath = Path.Combine(Setup.Dirx3264, "GesoBrowserSubProcess.exe")
-                    BrowserSubprocessPath = Path.Combine(Setup.Dirx3264, "CefSharp.BrowserSubprocess.exe")
-                    //BrowserSubprocessPath = Setup.AppPath
+                    BrowserSubprocessPath = Path.Combine(Setup.Dirx3264, Ini.GetValueString("Profile", "subproces", "CefSharp.BrowserSubprocess.exe"))
+                //BrowserSubprocessPath = Setup.AppPath
                 };
                 obj.CachePath = obj.UserDataPath;
                 string Stmp = Path.Combine(Setup.AppDir, "plugins", Flashdll);
@@ -231,12 +259,7 @@ namespace gesobrowser
                     obj.CefCommandLineArgs.Add("ppapi-flash-path", Stmp);
                 }
                 if (IsAudio == false)
-                    obj.CefCommandLineArgs.Add("mute-audio");
-                if (Proxyserver != "")
-                {
-                    obj.CefCommandLineArgs.Add("proxy-server", Proxyserver);
-                }
-
+                    obj.CefCommandLineArgs.Add("mute-audio", "1");
                 // Flashを有効化
                 //				obj.CefCommandLineArgs.Add("enable-npapi", "1");
                 //				obj.CefCommandLineArgs.Add("debug-plugin-loading", "1");
@@ -249,10 +272,19 @@ namespace gesobrowser
                 //				obj.CefCommandLineArgs.Add("disable-plugins-discovery", "1");
                 Cef.Initialize(obj);
             }
-            IRequestContext contx = Cef.GetGlobalRequestContext();
+            if (Ini.GetValueString("Profile", "proxy", 0) != 0)
+                Proxyserver = Ini.GetValueString("Profile", "proxyserver");
             Cef.UIThreadTaskFactory.StartNew(delegate
             {
-                contx.SetPreference("profile.default_content_setting_values.plugins", 1, out string err);
+                var v = new Dictionary<string, object>
+                {
+                    { "mode", "fixed_servers" },
+                    { "server", Proxyserver },
+                };
+                String error;
+                IRequestContext gr = Cef.GetGlobalRequestContext();
+                gr.SetPreference("proxy", v, out error);
+                gr.SetPreference("profile.default_content_setting_values.plugins", 1, out error);
             });
         }
         public class BrowserTab : IDisposable
@@ -358,37 +390,20 @@ namespace gesobrowser
             browserTab.ChromeBrowser.FrameLoadEnd += ChromeBrowserOnFrameLoadEnd;
             return;
         }
-        //private string ReceiveString(ref Message m)
-        //{
-        //    string data;
-        //    try
-        //    {
-        //        WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
-        //        //WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.COPYDATASTRUCT));
-        //        data = cds.lpData;
-        //        data = data.Substring(0, cds.cbData / 2);
-        //    }
-        //    catch { data = null; }
-        //    return data;
-        //}
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == WinApi.WM_COPYDATA)//&& (int)m.WParam== WinApi.WM_USER1)
             {
-                //string str = ReceiveString(ref m);
-                //if (str != null)
-                //    Newtabs(str);
                 try
                 {
                     WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)m.GetLParam(typeof(WinApi.COPYDATASTRUCT));
-                    //WinApi.COPYDATASTRUCT cds = (WinApi.COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.COPYDATASTRUCT));
                     string data = cds.lpData;
                     data = data.Substring(0, cds.cbData / 2);
                     Newtabs(data);
                 }
                 catch { }
                 return;
-            }            
+            }
             if (m.Msg == WinApi.WM_APP1) {
                 m.Result = (IntPtr)BrowserTablist.Count;
                 return;
@@ -398,9 +413,6 @@ namespace gesobrowser
         private void ChromeBrowserOnFrameLoadEnd(object sender, EventArgs e)
         {
             BrowserTablist[0].ChromeBrowser.SetZoomLevel(Zoomlv(ZoomLevel));
-            //Process curProcess = Process.GetCurrentProcess();
-            //WinApi.SetWindowPlacement(curProcess.MainWindowHandle, ref Placement);
-            //WinApi.SetWindowPlacement(HWnd, ref Placement);
         }
         private void TabControl1_DrawItem(object sender, DrawItemEventArgs e)
         {
