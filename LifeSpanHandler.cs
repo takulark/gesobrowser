@@ -1,4 +1,4 @@
-﻿using CefSharp;
+using CefSharp;
 using System;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
@@ -77,18 +77,6 @@ namespace gesobrowser.Handlers
         public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
         {
             newBrowser = null;
-            if (targetUrl.Contains("gamefront.sengokugifu.jp/pay.php"))
-            {
-                Process.Start(targetUrl);
-                return true;
-            }
-            else
-            if (targetUrl.Contains("secure.lionsfilm.co.jp/vg/shop"))
-            {
-                Process.Start(targetUrl);
-                return true;
-            }
-
             MyForm.Invoke(new Action(() =>
             {
                 BrowserForm.BrowserTab browserTab = new BrowserForm.BrowserTab(MyForm.tabControl1, targetUrl, false);
