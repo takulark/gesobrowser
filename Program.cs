@@ -15,6 +15,7 @@ namespace gesobrowser
         public static string AppName { get; set; }
         public static string AppNameWoExt { get; set; }
         public static string Dirx3264 { get; set; }
+        public static string UserData { get; set; }
         //var t;
         public static void Init(){
             AppPath = Application.ExecutablePath;
@@ -37,6 +38,7 @@ namespace gesobrowser
                 AppNameWoExt = AppNameWoExt.Substring(0,s-1);
             }
             Dirx3264 = Path.Combine(AppDir,Ext);
+            UserData = "UserData";
         }
     }
     static class Program
@@ -95,7 +97,25 @@ namespace gesobrowser
             }
             return null;
         }
-
+        private static int GetPreviousProcessCnt()
+        {
+            Process curProcess = Process.GetCurrentProcess();
+            Process[] allProcesses = Process.GetProcessesByName(curProcess.ProcessName);
+            int cnt = 0;
+            foreach (Process checkProcess in allProcesses)
+            {
+                if (checkProcess.Id != curProcess.Id)
+                {
+                    if (String.Compare(
+                            checkProcess.MainModule.FileName,
+                            curProcess.MainModule.FileName, true) == 0)
+                    {
+                        cnt++;
+                    }
+                }
+            }
+            return cnt;
+        }
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
@@ -129,6 +149,12 @@ namespace gesobrowser
                     switch (cnt) {
                         case 0:
                         case 1:
+                            cnt = GetPreviousProcessCnt();
+                            if (cnt!=0)
+                            {
+                                Setup.UserData += cnt;
+                            }
+
                             Application.Run(new BrowserForm(url));
                             return;
                         default:
